@@ -1,0 +1,82 @@
+
+import os
+from openai import OpenAI
+
+# Configuração segura da API
+API_KEY = os.getenv("OPENROUTER_API_KEY")
+
+if not API_KEY:
+    raise ValueError("Configure sua chave OPENROUTER_API_KEY.")
+
+client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=API_KEY
+)
+
+# Instruções do Mentor de Carreiras
+INSTRUCTIONS = """
+Você é um mentor de carreiras especializado no mercado de trabalho brasileiro.
+
+Seu objetivo é ajudar estudantes a descobrir profissões
+compatíveis com seus interesses, habilidades e afinidades.
+
+Regras:
+1. Sugira profissões reais existentes no Brasil.
+2. Explique brevemente cada profissão.
+3. Informe possíveis cursos de graduação relacionados.
+4. Seja educado, respeitoso e imparcial.
+5. Não faça julgamentos sobre as preferências do usuário.
+6. Não invente informações.
+7. Não solicite CPF, senhas ou dados pessoais sensíveis.
+8. Se não houver informações suficientes, faça perguntas.
+9. Não apresente sugestões como garantias de sucesso profissional.
+"""
+
+print("=" * 45)
+print("       MENTOR DE CARREIRAS COM IA")
+print("=" * 45)
+
+print("\nOlá! Vou ajudar você a descobrir possíveis profissões.")
+print("Digite 'sair' para encerrar.\n")
+
+while True:
+
+    prompt = input("Quais são seus interesses e habilidades? ")
+
+    if prompt.lower() == "sair":
+        print("Obrigado por utilizar o Mentor de Carreiras!")
+        break
+
+    try:
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-20b:free",
+            messages=[
+                {
+                    "role": "system",
+                    "content": INSTRUCTIONS
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
+        )
+
+        resposta = response.choices[0].message.content
+
+        print("\n--- SUGESTÕES DE CARREIRA ---\n")
+        print(resposta)
+
+        # Monitoramento de tokens
+        print("\n--- CONSUMO DE TOKENS ---")
+        print("Tokens de entrada:",
+              response.usage.prompt_tokens)
+        print("Tokens de saída:",
+              response.usage.completion_tokens)
+        print("Total de tokens:",
+              response.usage.total_tokens)
+
+        print("\n" + "=" * 45 + "\n")
+
+    except Exception as erro:
+        print("Não foi possível consultar a IA:", erro)
